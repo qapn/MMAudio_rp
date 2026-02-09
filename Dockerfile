@@ -5,7 +5,7 @@ WORKDIR /MMAudio
 
 RUN sed -e '/^torch ==/d' -e '/^torchvision$/d' -e '/^torchaudio$/d' requirements.txt > /tmp/req.txt && \
     pip install -r /tmp/req.txt runpod --no-cache-dir
-RUN pip install -e . --no-cache-dir
+RUN pip install -e . --no-cache-dir --no-deps
 
 RUN python -c "\
 from mmaudio.eval_utils import all_model_cfg; \
