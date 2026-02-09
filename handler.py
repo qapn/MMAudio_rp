@@ -1,5 +1,4 @@
 import runpod
-import sys
 import traceback
 
 net = None
@@ -78,30 +77,31 @@ def handler(job):
     seed = int(job_input.get('seed', -1))
 
     try:
-        rng = torch.Generator(device='cuda')
-        if seed >= 0:
-            rng.manual_seed(seed)
-        else:
-            rng.seed()
+        with torch.inference_mode():
+            rng = torch.Generator(device='cuda')
+            if seed >= 0:
+                rng.manual_seed(seed)
+            else:
+                rng.seed()
 
-        fm = FlowMatching(min_sigma=0, inference_mode='euler', num_steps=num_steps)
+            fm = FlowMatching(min_sigma=0, inference_mode='euler', num_steps=num_steps)
 
-        seq_cfg.duration = duration
-        net.update_seq_lengths(seq_cfg.latent_seq_len, seq_cfg.clip_seq_len, seq_cfg.sync_seq_len)
+            seq_cfg.duration = duration
+            net.update_seq_lengths(seq_cfg.latent_seq_len, seq_cfg.clip_seq_len, seq_cfg.sync_seq_len)
 
-        audios = generate(
-            None, None, [prompt],
-            negative_text=[negative_prompt],
-            feature_utils=feature_utils,
-            net=net, fm=fm, rng=rng,
-            cfg_strength=cfg_strength,
-        )
-        audio = audios.float().cpu()[0]
+            audios = generate(
+                None, None, [prompt],
+                negative_text=[negative_prompt],
+                feature_utils=feature_utils,
+                net=net, fm=fm, rng=rng,
+                cfg_strength=cfg_strength,
+            )
+            audio = audios.float().cpu()[0]
 
-        buf = io.BytesIO()
-        torchaudio.save(buf, audio, seq_cfg.sampling_rate, format='wav')
-        buf.seek(0)
-        wav_bytes = buf.read()
+            buf = io.BytesIO()
+            torchaudio.save(buf, audio, seq_cfg.sampling_rate, format='wav')
+            buf.seek(0)
+            wav_bytes = buf.read()
 
         audio_base64 = base64.b64encode(wav_bytes).decode('utf-8')
     except Exception as e:
