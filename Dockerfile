@@ -3,7 +3,8 @@ FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 RUN git clone https://huggingface.co/spaces/hkchengrex/MMAudio /MMAudio
 WORKDIR /MMAudio
 
-RUN pip install -r requirements.txt runpod --no-cache-dir
+RUN sed -e '/^torch ==/d' -e '/^torchvision$/d' -e '/^torchaudio$/d' requirements.txt > /tmp/req.txt && \
+    pip install -r /tmp/req.txt runpod --no-cache-dir
 RUN pip install -e . --no-cache-dir
 
 RUN python -c "\
